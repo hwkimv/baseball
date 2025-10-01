@@ -19,7 +19,7 @@ export const rand = (a: number, b: number) => lerp(a, b, Math.random());
  * - 실제물리와 1:1 대응은 아니고, 게임 난이도용 스케일러
  */
 export function plateTimeMsFromMph(mph: number) {
-    return lerp(600, 400, clamp((mph - 70) / (100 - 70), 0, 1));
+    return lerp(2000, 400, clamp((mph - 20) / (100 - 20), 0, 1));
 }
 
 /**

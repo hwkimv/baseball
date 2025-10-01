@@ -45,6 +45,18 @@ export default function ScreenBaseballTiming() {
     const swingAtRef = useRef<number | null>(null); // 스윙 시점의 진행률
     const rafRef = useRef<number | null>(null);     // requestAnimationFrame id
     const startTsRef = useRef<number | null>(null); // 투구 시작 타임스탬프
+    const fieldRef = useRef<HTMLDivElement>(null); // 필드 DOM 참조
+    const [fieldH, setFieldH] = useState(0);       // 필드 높이(px)
+
+    // 화면 크기 변화에 대응
+    useEffect(() => {
+        const el = fieldRef.current;
+        if (!el) return;
+        const ro = new ResizeObserver(() => setFieldH(el.clientHeight));
+        ro.observe(el);
+        setFieldH(el.clientHeight); // 초기 세팅
+        return () => ro.disconnect();
+    }, []);
 
     // RAF 취소 유틸
     const cancelRaf = () => {
@@ -222,17 +234,36 @@ export default function ScreenBaseballTiming() {
     }, [autoPitch, gameOver, inPlay, pitchGapMs, startPitch]);
 
     /* ------------------------- 공 위치/스케일 계산 ------------------------ */
-    const yPx = useMemo(() => lerp(0, 320, progress), [progress]);     // 원근감 y
+    // 화면(컨테이너) 크기에 맞게 공의 종단점(Y)을 스케일링
+    // top-12(시작 오프셋)에서 컨테이너 높이의 약 78% 지점(플레이트 근처)까지 이동
+    const startYOffset = 0;                          // top-12 기준이라 0
+    const endYOffset   = Math.max(0, fieldH * 0.85 - 48); // 필요시 0.75~0.85로 미세조정
+
+    // 원근감 Y(픽셀)
+    const yPx = useMemo(() => lerp(startYOffset, endYOffset, progress), [progress, endYOffset]); // ✅ 고정 320 제거
+
+    // 스케일 (원근감)
     const zScale = useMemo(() => lerp(0.6, 1.4, progress), [progress]); // 스케일
+
+    // 낙차/추가 Y 오프셋(싱커 등)
     const yToward = useMemo(() => {
         const base = yPx;
         const extraY = pitchType === "sinker" ? curveOffset("sinker", progress) : 0;
         return base + extraY;
     }, [yPx, progress, pitchType]);
+
+    // 좌우 흔들림(슬라이더/커브)
     const lateralX = useMemo(() => {
         if (pitchType === "straight" || pitchType === "sinker") return 0;
         return curveOffset(pitchType, progress); // 좌우 흔들림
     }, [progress, pitchType]);
+
+    // 공 불투명도: 95%까지는 완전 보임, 마지막 5%만 페이드아웃
+    const ballOpacity = useMemo(() => {
+        if (progress < 0.95) return 1;
+        const k = (progress - 0.95) / 0.05; // 0→1
+        return Math.max(0, 1 - k);
+    }, [progress]);
 
     /* ------------------------------- 리셋 -------------------------------- */
     const resetAll = () => {
@@ -259,15 +290,16 @@ export default function ScreenBaseballTiming() {
 
                     <CardContent>
                         {/* 필드 캔버스 영역 */}
-                        <div className="relative w-full rounded-2xl overflow-hidden bg-gradient-to-b from-emerald-900/40 via-slate-900/40 to-slate-900 border border-slate-700"
+                        <div ref={fieldRef}
+                             className="relative w-full rounded-2xl overflow-hidden bg-gradient-to-b from-emerald-900/40 via-slate-900/40 to-slate-900 border border-slate-700"
                             // ⬇️ 높이: 모바일~데스크톱까지 점점 크게 + 과도하게 커지지 않도록 상한
                              style={{ height: "min(72vh, 820px)" }}>
 
                             {/* 우상단 미니 다이아몬드 & 점수 */}
                             <div className="absolute right-3 top-3 z-20 pointer-events-none">
-                                <MiniDiamond runners={runners} size={96} />
+                                <MiniDiamond runners={runners} size={200} />
                                 <div className="mt-2 flex justify-center">
-                                    <div className="px-2 py-0.5 rounded-full bg-emerald-600/80 text-white font-semibold text-sm shadow">{runs} 점</div>
+                                    <div className="px-3 py-1 rounded-full bg-emerald-600/80 text-white font-semibold text-base shadow">{runs} 점</div>
                                 </div>
                             </div>
 
@@ -292,19 +324,20 @@ export default function ScreenBaseballTiming() {
                             <div className="absolute left-1/2 -translate-x-1/2 bottom-20 w-28 h-28 rounded-full border-2 border-amber-300/40" />
 
                             {/* 공: 직선(tween+linear) 이동 + 원근 스케일 */}
-                            <AnimatePresence>
-                                {inPlay && (
-                                    <motion.div
-                                        key="ball"
-                                        initial={{ opacity: 0, scale: 0.5 }}
-                                        animate={{ opacity: 1, x: lateralX, y: yToward, scale: zScale }}
-                                        exit={{ opacity: 0 }}
-                                        transition={{ type: "tween", ease: "linear", duration: Math.max(plateTime / 1000, 0.01) }}
-                                        className="absolute left-1/2 -translate-x-1/2 top-12 w-5 h-5 rounded-full bg-white"
-                                        style={{ boxShadow: "0 0 0 2px rgba(0,0,0,0.25), 0 2px 10px rgba(0,0,0,0.35)" }}
-                                    />
-                                )}
-                            </AnimatePresence>
+                            {inPlay && (
+                                   <motion.div
+                                     // 시작/종료만 살짝 페이드, 비행 중 움직임은 전부 progress 기반
+                                     initial={{ opacity: 0 }}
+                                     animate={{ opacity: 1 }}
+                                     exit={{ opacity: 0 }}
+                                     transition={{ duration: 0.18, ease: "easeOut" }}
+                                     className="absolute left-1/2 -translate-x-1/2 top-12 w-5 h-5 rounded-full bg-white"
+                                     style={{
+                                       transform: `translateX(${lateralX}px) translateY(${yToward}px) scale(${zScale})`,
+                                       opacity: ballOpacity,
+                                       boxShadow: "0 0 0 2px rgba(0,0,0,0.25), 0 2px 10px rgba(0,0,0,0.35)",
+                                     }}   />
+                                 )}
 
                             {/* 스윙 이펙트 */}
                             <AnimatePresence>
@@ -476,7 +509,7 @@ export default function ScreenBaseballTiming() {
                                 <div className="flex items-center justify-between text-sm mb-2">
                                     <span className="text-white">구속 (mph)</span><span className="text-slate-400">{mph}</span>
                                 </div>
-                                <Slider value={[mph]} min={70} max={100} step={1} onValueChange={v => setMph(v[0])} />
+                                <Slider value={[mph]} min={20} max={100} step={1} onValueChange={v => setMph(v[0])} />
                             </div>
 
                             {/* 투구 간격/오토 */}

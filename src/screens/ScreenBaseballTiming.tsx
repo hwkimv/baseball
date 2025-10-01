@@ -208,7 +208,11 @@ export default function ScreenBaseballTiming() {
             setInPlay(false);
             setGameOver(true);
         }
-    }, [pitches]);
+    }, [pitches,maxPitches]);
+
+    useEffect(() => {
+        if (gameOver) setMaxPitches(5);
+    }, [gameOver]);
 
     /* ------------------------------ 오토 투구 ---------------------------- */
     useEffect(() => {
@@ -255,7 +259,9 @@ export default function ScreenBaseballTiming() {
 
                     <CardContent>
                         {/* 필드 캔버스 영역 */}
-                        <div className="relative w-full h-[420px] rounded-2xl overflow-hidden bg-gradient-to-b from-emerald-900/40 via-slate-900/40 to-slate-900 border border-slate-700">
+                        <div className="relative w-full rounded-2xl overflow-hidden bg-gradient-to-b from-emerald-900/40 via-slate-900/40 to-slate-900 border border-slate-700"
+                            // ⬇️ 높이: 모바일~데스크톱까지 점점 크게 + 과도하게 커지지 않도록 상한
+                             style={{ height: "min(72vh, 820px)" }}>
 
                             {/* 우상단 미니 다이아몬드 & 점수 */}
                             <div className="absolute right-3 top-3 z-20 pointer-events-none">

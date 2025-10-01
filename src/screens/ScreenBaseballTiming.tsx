@@ -34,7 +34,8 @@ export default function ScreenBaseballTiming() {
     const [strikes, setStrikes] = useState(0);
     const [outs, setOuts] = useState(0);
     const [runs, setRuns] = useState(0);
-    const [pitches, setPitches] = useState(0);
+    const [pitches, setPitches] = useState(0);  // 현재 투구 수
+    const [maxPitches, setMaxPitches] = useState(5);    // 최대 투구 제한
     const [gameOver, setGameOver] = useState(false);
     const [runners, setRunners] = useState<Runners>({ on1: false, on2: false, on3: false });
 
@@ -114,6 +115,7 @@ export default function ScreenBaseballTiming() {
         if (r.kind === "foul") {
             // 파울: 2스트 미만일 때만 스트 증가
             setStrikes(s => (s < 2 ? s + 1 : 2));
+            setMaxPitches((prev) => prev + 1);
             return;
         }
 
@@ -202,7 +204,7 @@ export default function ScreenBaseballTiming() {
 
     /* ------------------------------ 게임오버 ------------------------------ */
     useEffect(() => {
-        if (pitches >= 5) {              // 데모용: 5구 후 종료
+        if (pitches >= maxPitches) {
             setInPlay(false);
             setGameOver(true);
         }

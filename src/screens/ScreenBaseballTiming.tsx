@@ -237,7 +237,7 @@ export default function ScreenBaseballTiming() {
     // 화면(컨테이너) 크기에 맞게 공의 종단점(Y)을 스케일링
     // top-12(시작 오프셋)에서 컨테이너 높이의 약 78% 지점(플레이트 근처)까지 이동
     const startYOffset = 0;                          // top-12 기준이라 0
-    const endYOffset   = Math.max(0, fieldH * 0.85 - 48); // 필요시 0.75~0.85로 미세조정
+    const endYOffset   = Math.max(0, fieldH * 0.78 - 48); // 필요시 0.75~0.85로 미세조정
 
     // 원근감 Y(픽셀)
     const yPx = useMemo(() => lerp(startYOffset, endYOffset, progress), [progress, endYOffset]); // ✅ 고정 320 제거
@@ -258,10 +258,10 @@ export default function ScreenBaseballTiming() {
         return curveOffset(pitchType, progress); // 좌우 흔들림
     }, [progress, pitchType]);
 
-    // 공 불투명도: 95%까지는 완전 보임, 마지막 5%만 페이드아웃
+    // 공 불투명도: 85%까지는 완전 보임, 마지막 15%만 페이드아웃
     const ballOpacity = useMemo(() => {
-        if (progress < 0.95) return 1;
-        const k = (progress - 0.95) / 0.05; // 0→1
+        if (progress < 0.85) return 1;
+        const k = (progress - 0.85) / 0.15; // 0→1
         return Math.max(0, 1 - k);
     }, [progress]);
 
@@ -324,20 +324,31 @@ export default function ScreenBaseballTiming() {
                             <div className="absolute left-1/2 -translate-x-1/2 bottom-20 w-28 h-28 rounded-full border-2 border-amber-300/40" />
 
                             {/* 공: 직선(tween+linear) 이동 + 원근 스케일 */}
-                            {inPlay && (
-                                   <motion.div
-                                     // 시작/종료만 살짝 페이드, 비행 중 움직임은 전부 progress 기반
-                                     initial={{ opacity: 0 }}
-                                     animate={{ opacity: 1 }}
-                                     exit={{ opacity: 0 }}
-                                     transition={{ duration: 0.18, ease: "easeOut" }}
-                                     className="absolute left-1/2 -translate-x-1/2 top-12 w-5 h-5 rounded-full bg-white"
-                                     style={{
-                                       transform: `translateX(${lateralX}px) translateY(${yToward}px) scale(${zScale})`,
-                                       opacity: ballOpacity,
-                                       boxShadow: "0 0 0 2px rgba(0,0,0,0.25), 0 2px 10px rgba(0,0,0,0.35)",
-                                     }}   />
-                                 )}
+                            <AnimatePresence>
+                                {inPlay && (
+                                    <motion.div
+                                        key="ball-wrap"
+                                        // 시작/종료 페이드만 래퍼에서 수행
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        transition={{ duration: 0.18, ease: "easeOut" }}
+                                        className="absolute left-1/2 -translate-x-1/2 top-12"
+                                    >
+                                        {/* 공 본체: 비행 중 불투명도는 progress 기반으로 제어 */}
+                                        <div
+                                            className="w-5 h-5 rounded-full bg-white"
+                                            style={{
+                                                transform: `translateX(${lateralX}px) translateY(${yToward}px) scale(${zScale})`,
+                                                opacity: ballOpacity, // ← 여기서만 비행 중 투명도 제어
+                                                boxShadow:
+                                                    "0 0 0 2px rgba(0,0,0,0.25), 0 2px 10px rgba(0,0,0,0.35)",
+                                            }}
+                                        />
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+
 
                             {/* 스윙 이펙트 */}
                             <AnimatePresence>

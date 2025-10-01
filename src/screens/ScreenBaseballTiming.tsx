@@ -6,6 +6,8 @@ import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { MiniDiamond } from "@/components/MiniDiamond";
 import { Play, RotateCcw, Sparkles, Gauge, TimerReset } from "lucide-react";
+import { useBleSwing } from "@/io/ble";
+
 
 // 게임 도메인 모듈
 import type { HitResult, PitchType, Runners } from "@/game/types";
@@ -162,6 +164,18 @@ export default function ScreenBaseballTiming() {
             // 컨택 실패 시: 투구 종료 시 스트라이크 처리됨
         }
     }, [inPlay, progress]);
+
+    /* ------------------------- ESP32 BLE 연결 훅 ------------------------- */
+    const ble = useBleSwing(doSwing, {
+        // 기본값(NUS)이라 옵션을 생략가능.
+        serviceUUID: "6e400001-b5a3-f393-e0a9-e50e24dcca9e",
+        characteristicUUID: "6e400003-b5a3-f393-e0a9-e50e24dcca9e",
+        // writeCharacteristicUUID: "6e400002-b5a3-f393-e0a9-e50e24dcca9e", // 필요시
+        // filters: [{ namePrefix: "ESP32" }], // 장치명 필터 원하면 사용
+        swingToken: "SWING",
+        debounceMs: 250,
+        verbose: false,
+    });
 
     /* ------------------------------ 키 바인딩 ----------------------------- */
     useEffect(() => {
@@ -365,6 +379,37 @@ export default function ScreenBaseballTiming() {
                                 <Button variant="outline" onClick={resetAll} className="rounded-2xl">
                                     <RotateCcw className="w-4 h-4 mr-2" /> 리셋
                                 </Button>
+
+                                {/* ---- ESP32 BLE 연결/해제 & 상태 뱃지 ---- */}
+                                {ble.supported ? (
+                                    <>
+                                        <Button
+                                            variant="outline"
+                                            onClick={ble.connect}
+                                            disabled={ble.status === "requesting" || ble.status === "connecting" || ble.status === "connected"}
+                                            className="rounded-2xl"
+                                        >
+                                            {ble.status === "requesting" || ble.status === "connecting" ? "BLE 연결 중..." : "ESP32 BLE 연결"}
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            onClick={ble.disconnect}
+                                            disabled={ble.status !== "connected"}
+                                            className="rounded-2xl"
+                                        >
+                                            BLE 해제
+                                        </Button>
+                                        <Badge className={`ml-1 ${ble.status === "connected"
+                                            ? "bg-emerald-600/70 border-emerald-500 text-white"
+                                            : "bg-slate-700/80 border-slate-600 text-slate-200"}`}>
+                                            {ble.status}{ble.deviceName ? ` · ${ble.deviceName}` : ""}
+                                        </Badge>
+                                        {/* 디버그로 최근 수신 텍스트 보고 싶으면: */}
+                                        {/* <span className="text-xs text-slate-400 ml-2">{ble.lastMessage}</span> */}
+                                    </>
+                                ) : (
+                                    <Badge className="bg-red-700/70 border-red-600 text-white">Web Bluetooth 미지원</Badge>
+                                )}
                             </div>
                         </div>
                     </CardContent>

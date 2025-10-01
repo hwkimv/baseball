@@ -15,7 +15,7 @@ import { Play, RotateCcw, Sparkles, Gauge, TimerReset } from "lucide-react";
  */
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
-const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+const leap = (a: number, b: number, t: number) => a + (b - a) * t;
 
 // 결과 타입
 type HitResult =
@@ -24,7 +24,7 @@ type HitResult =
   | { kind: "single" | "double" | "triple" | "homerun"; timingDelta: number; exitVelo: number; launchDeg: number; distance: number };
 
 // 랜덤 유틸
-const rand = (a: number, b: number) => lerp(a, b, Math.random());
+const rand = (a: number, b: number) => leap(a, b, Math.random());
 
 // 타구 비거리 근사(아주 단순화)
 function estimateDistance(exitVelo: number, launchDeg: number) {
@@ -50,7 +50,7 @@ const FOUL = 0.055; // <= 5.5%p (이후는 헛스윙)
 function plateTimeMsFromMph(mph: number) {
   // 홈까지 약 18.44 m, 발사 후 유효 구간 ~0.4초(100mph)~0.6초(70mph) 근사
   // mph를 0.4~0.6초로 매핑 (조절 가능)
-  const t = lerp(600, 400, clamp((mph - 70) / (100 - 70), 0, 1));
+  const t = leap(600, 400, clamp((mph - 70) / (100 - 70), 0, 1));
   return t;
 }
 
@@ -310,8 +310,8 @@ export default function ScreenBaseballTiming() {
   }, [autoPitch, inPlay, startPitch, pitchGapMs, result, gameOver]);
 
   // 진행률에 따라 공 위치/스케일 계산
-  const yPx = useMemo(() => lerp(0, 320, progress), [progress]);
-  const zScale = useMemo(() => lerp(0.6, 1.4, progress), [progress]);
+  const yPx = useMemo(() => leap(0, 320, progress), [progress]);
+  const zScale = useMemo(() => leap(0.6, 1.4, progress), [progress]);
   const yToward = useMemo(() => {
     const base = yPx; // 위(원근) → 아래(플레이어) 방향
     const extraY = pitchType === "sinker" ? curveOffset("sinker", progress) : 0;

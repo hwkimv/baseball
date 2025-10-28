@@ -1,5 +1,5 @@
-// 최소 Web Bluetooth 타입 선언 (필요한 것만)
-// 브라우저 지원 런타임을 전제로 컴파일 오류만 제거합니다.
+// 최소 Web Bluetooth 타입 선언
+// 브라우저 지원 런타임을 전제로 컴파일 오류만 제거.
 
 type BluetoothServiceUUID = number | string;
 type BluetoothCharacteristicUUID = number | string;

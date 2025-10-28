@@ -25,11 +25,22 @@ export default function ScreenBaseballTimingPage() {
         verbose: false,
     });
 
+    // 투수 모션 효과
+    const [pitchFx, setPitchFx] = useState(false);
+
+    // 투구 + 애니메이션 트리거
+    const startPitchWithFx = () => {
+        setPitchFx(true);          // 애니메이션 시작
+        eng.startPitch();          // 기존 투구 로직
+        // 다음 투구에서 다시 true로 줄 수 있게 한 틱 뒤에 false로 리셋
+        setTimeout(() => setPitchFx(false), 0);
+    };
+
     // 키 바인딩
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
             if (e.code === "Space") { e.preventDefault(); eng.doSwing(); }
-            else if (e.code === "Enter") { e.preventDefault(); eng.startPitch(); }
+            else if (e.code === "Enter") { e.preventDefault(); startPitchWithFx(); }
         };
         window.addEventListener("keydown", onKey);
         return () => window.removeEventListener("keydown", onKey);
@@ -49,27 +60,39 @@ export default function ScreenBaseballTimingPage() {
                     </CardHeader>
 
                     <CardContent>
-                        <Field
-                            inPlay={eng.inPlay}
-                            result={eng.result}
-                            runners={eng.runners}
-                            progress={eng.progress}
-                            kinematics={eng.kinematics}
-                        />
+                        <div className="relative">
+                            {/* ★ 엔진 상태를 그대로 넘김 → 속도/구종 변화 자동 반영 */}
+                            <PitcherFrameSequence
+                                inPlay={eng.inPlay}
+                                progress={eng.progress}        // 0~1
+                                frameCount={40}
+                                pathPrefix="/assets/pitcher"   // public/assets/pitcher
+                                top={64}
+                                z={25}
+                            />
 
-                        <TimingBar
-                            progress={eng.progress}
-                            assistBar={eng.assistBar}
-                            setAssistBar={eng.setAssistBar}
-                        />
+                            <Field
+                                inPlay={eng.inPlay}
+                                result={eng.result}
+                                runners={eng.runners}
+                                progress={eng.progress}
+                                kinematics={eng.kinematics}
+                            />
+                        </div>
 
-                        <Controls
-                            inPlay={eng.inPlay}
-                            startPitch={eng.startPitch}
-                            doSwing={eng.doSwing}
-                            resetAll={eng.resetAll}
-                            ble={ble}
-                        />
+                            <TimingBar
+                                progress={eng.progress}
+                                assistBar={eng.assistBar}
+                                setAssistBar={eng.setAssistBar}
+                            />
+
+                            <Controls
+                                inPlay={eng.inPlay}
+                                startPitch={startPitchWithFx}
+                                doSwing={eng.doSwing}
+                                resetAll={eng.resetAll}
+                                ble={ble}
+                            />
                     </CardContent>
                 </Card>
 

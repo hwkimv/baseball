@@ -31,42 +31,52 @@ export const Field: React.FC<Props> = ({ inPlay, result, runners, progress, kine
         <div
             ref={fieldRef}
             className="relative w-full rounded-2xl overflow-hidden bg-gradient-to-b from-emerald-900/40 via-slate-900/40 to-slate-900 border border-slate-700"
-            style={{ height: "min(72vh, 820px)" }}
+            style={{height: "min(72vh, 820px)"}}
         >
             {/* 미니 다이아 + 점수는 상위에서 별도 표기하고 싶으면 props로 넘겨 분리 가능 */}
-            <div className="absolute right-3 top-3 z-20 pointer-events-none">
-                <MiniDiamond runners={runners} size={200} />
+            <div className="absolute right-3 top-3 z-30 pointer-events-none">
+                <MiniDiamond runners={runners} size={200}/>
             </div>
 
             {/* 가이드 라인 */}
             <div className="absolute inset-0 pointer-events-none">
-                <div className="absolute left-0 right-0 top-1/2 h-px bg-white/10" />
-                <div className="absolute left-0 right-0 top-[70%] h-px bg-white/5" />
-                <div className="absolute left-0 right-0 top-[85%] h-px bg-white/5" />
+                <div className="absolute left-0 right-0 top-1/2 h-px bg-white/10"/>
+                <div className="absolute left-0 right-0 top-[70%] h-px bg-white/5"/>
+                <div className="absolute left-0 right-0 top-[85%] h-px bg-white/5"/>
             </div>
 
             {/* 투수 박스(시각효과) */}
             <motion.div
                 className="absolute left-1/2 -translate-x-1/2 top-8 w-16 h-24 rounded-xl bg-sky-500/30 border border-sky-400/30 flex items-center justify-center text-xs"
-                animate={inPlay ? { y: [0, -4, 0] } : { y: 0 }}
-                transition={{ duration: 0.6, repeat: inPlay ? Infinity : 0, ease: "easeInOut" }}
+                animate={inPlay ? {y: [0, -4, 0]} : {y: 0}}
+                transition={{duration: 0.6, repeat: inPlay ? Infinity : 0, ease: "easeInOut"}}
             >
                 투수
             </motion.div>
 
             {/* 홈 플레이트 / 힌트 */}
-            <div className="absolute left-1/2 -translate-x-1/2 bottom-8 w-20 h-20 rotate-45 bg-white/10 border border-white/20" />
-            <div className="absolute left-1/2 -translate-x-1/2 bottom-20 w-28 h-28 rounded-full border-2 border-amber-300/40" />
+            <div className="absolute bottom-[8%] left-1/2 -translate-x-1/2 z-[30]">
+                <div className="relative w-[180px] h-[180px]">
+                    {/* 스트라이크 존 */}
+                    <div
+                        className="absolute inset-0 border-4 border-yellow-200/80 rounded-sm shadow-[0_0_20px_rgba(255,255,0,0.5)]"/>
+
+                    {/* 중앙 타격 타이밍 포인트 */}
+                    <div className="absolute left-1/2 top-1/2 w-[24px] h-[24px]
+                    bg-yellow-200 rounded-full -translate-x-1/2 -translate-y-1/2 shadow-[0_0_16px_rgba(255,255,150,0.8)]"/>
+
+                </div>
+            </div>
 
             {/* 공 */}
             <AnimatePresence>
                 {inPlay && (
                     <motion.div
                         key="ball-wrap"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.18, ease: "easeOut" }}
+                        initial={{opacity: 0}}
+                        animate={{opacity: 1}}
+                        exit={{opacity: 0}}
+                        transition={{duration: 0.18, ease: "easeOut"}}
                         className="absolute left-1/2 -translate-x-1/2 top-12"
                     >
                         <div
@@ -87,10 +97,10 @@ export const Field: React.FC<Props> = ({ inPlay, result, runners, progress, kine
                 {result && (
                     <motion.div
                         key="result-banner"
-                        initial={{ opacity: 0, y: -40, scale: 0.9 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -20, scale: 0.9 }}
-                        transition={{ duration: 0.3, ease: "easeOut" }}
+                        initial={{opacity: 0, y: -40, scale: 0.9}}
+                        animate={{opacity: 1, y: 0, scale: 1}}
+                        exit={{opacity: 0, y: -20, scale: 0.9}}
+                        transition={{duration: 0.3, ease: "easeOut"}}
                         className="
                         absolute
                         left-[43%]    /* ⬅️ 화면 가로 중앙 약간 왼쪽 (시각적 중앙 맞춤) */
@@ -113,7 +123,7 @@ export const Field: React.FC<Props> = ({ inPlay, result, runners, progress, kine
                                             : result.kind === "single" || result.kind === "double" || result.kind === "triple"
                                                 ? "bg-emerald-700/90 border-emerald-400 animate-bounce"
                                                 : "bg-slate-700/90 border-slate-500"
-                                }
+                            }
                                       `}
                         >
                             {result.kind === "homerun" && "🔥 HOMERUN! 🎉"}

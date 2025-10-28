@@ -39,17 +39,25 @@ export default function PitcherFrameSequence({
             absolute inset-0
             flex items-center
             justify-center"
-            style={{ top, zIndex: z }}
+            style={{
+                top,
+                zIndex: z,
+                transform: "translateY(-5%)",
+                borderRadius: "10px", }}
             aria-hidden
         >
             <img
                 src={src}
                 alt="투수 모션"
                 className="
-                w-full
-                h-full
+                w-auto
+                h-auto
                 object-contain
                 opacity-95"
+                style={{
+                    borderRadius: "20px",      // ⬅️ 이미지 자체도 둥글게
+                    transform: "scaleX(1) scaleY(0.99)",
+                }}
                 draggable={false}
             />
         </div>

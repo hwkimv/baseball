@@ -18,21 +18,22 @@ export const TimingBar: React.FC<Props> = ({ progress, assistBar, setAssistBar }
             </label>
         </div>
 
-        <div className="relative h-3 rounded-full bg-slate-700 overflow-hidden">
+        <div className="relative h-5 rounded-full bg-slate-700 overflow-hidden">
             <div className="absolute top-0 bottom-0 left-0" style={{ width: `${progress * 100}%` }}>
                 <div className="h-full bg-emerald-500/70" />
             </div>
             {assistBar && (
                 <>
-                    <div className="absolute top-[-4px] h-[11px] rounded bg-red-500/70"
+                    <div className="absolute top-[-4px] h-[16px] rounded bg-red-500/70"
                          style={{ left: `${(CONTACT_PROGRESS - PERFECT) * 100}%`, width: `${(PERFECT * 2) * 100}%` }} />
-                    <div className="absolute top-[-2px] h-[7px] rounded bg-emerald-500/70"
+                    <div className="absolute top-[-2px] h-[11px] rounded bg-emerald-500/70"
                          style={{ left: `${(CONTACT_PROGRESS - GOOD) * 100}%`, width: `${(GOOD * 2) * 100}%` }} />
-                    <div className="absolute top-0 h-[3px] bg-amber-400/70"
+                    <div className="absolute top-0 h-[6px] bg-amber-400/70"
                          style={{ left: `${(CONTACT_PROGRESS - OKAY) * 100}%`, width: `${(OKAY * 2) * 100}%` }} />
                 </>
             )}
-            <div className="absolute top-[-6px] bottom-[-6px] w-[2px] bg-white/70" style={{ left: `${CONTACT_PROGRESS * 100}%` }} />
+            <div className="absolute top-[-6px] bottom-[-6px] w-[4px] bg-white/70"
+                 style={{ left: `${CONTACT_PROGRESS * 100}%` }} />
         </div>
     </div>
 );
